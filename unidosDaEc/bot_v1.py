@@ -78,6 +78,13 @@ class unidosDaEc(BotAI):
             if self.can_afford(UnitTypeId.MARINE):
                 rax.train(UnitTypeId.MARINE)
 
+        #mandando marines para o ataque
+        marines: Units = self.units(UnitTypeId.MARINE).idle
+        if marines.amount > 15:
+            target: Point2 = self.enemy_structures.random_or(self.enemy_start_locations[0]).position
+            for marine in marines:
+                marine.attack(target)
+
 
         if iteration % 100 == 0:
             #Esse print a gente pode usar pra printar os parâmetros pra entender melhor oq eles retornam e como
