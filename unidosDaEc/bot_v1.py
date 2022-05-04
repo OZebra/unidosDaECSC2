@@ -73,13 +73,18 @@ class unidosDaEc(BotAI):
             for th in self.townhalls.idle:
                 th.train(UnitTypeId.SCV) #Pegue a base ociosa e crie um trabalhador
 
+        #treinando marines
+        for rax in self.structures(UnitTypeId.BARRACKS).ready.idle:
+            if self.can_afford(UnitTypeId.MARINE):
+                rax.train(UnitTypeId.MARINE)
+
+
         if iteration % 100 == 0:
             #Esse print a gente pode usar pra printar os parâmetros pra entender melhor oq eles retornam e como
             #as coisas funcionam no geral
             print("Supply used/left: ", self.supply_used, " ", self.supply_left)
             print("SELFStructures ", self.structures)
         
-
 
 
 def main():
