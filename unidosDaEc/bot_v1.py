@@ -80,6 +80,7 @@ class unidosDaEc(BotAI):
 
         #mandando marines para o ataque
         marines: Units = self.units(UnitTypeId.MARINE).idle
+        #logica -> junta 15 marines = ataque
         if marines.amount > 15:
             target: Point2 = self.enemy_structures.random_or(self.enemy_start_locations[0]).position
             for marine in marines:
