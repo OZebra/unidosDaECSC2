@@ -23,11 +23,16 @@ class unidosDaEc(BotAI):
         self.distance_calculation_method = 3
     
     async def on_step(self, iteration):
+        defendersNumber = 10
+        attackersNumber = 20
+        targetEnemy: Point2 = self.enemy_structures.random_or(self.enemy_start_locations[0]).position
+        targetDefender: Point2 = self.start_location.position
         if iteration % 20 == 0:
             await self.distribute_workers()
         
         supplyRatio = self.supply_used /(self.supply_used + self.supply_left);
-        
+        print( "Supply: ", self.supply_left)
+        print("self.townhalls", self.townhalls.amount)
         if (
             #Caso o supply esteja acabando e a gente tenha bases de controle
             #E a gente pode comprar um novo depósito e não tem nenhum depósito sendo construído
@@ -77,14 +82,18 @@ class unidosDaEc(BotAI):
         for rax in self.structures(UnitTypeId.BARRACKS).ready.idle:
             if self.can_afford(UnitTypeId.MARINE):
                 rax.train(UnitTypeId.MARINE)
-
-        #mandando marines para o ataque
+        
         marines: Units = self.units(UnitTypeId.MARINE).idle
-        #logica -> junta 15 marines = ataque
-        if marines.amount > 15:
-            target: Point2 = self.enemy_structures.random_or(self.enemy_start_locations[0]).position
-            for marine in marines:
-                marine.attack(target)
+        #Iremos sempre manter uma quantidade de defensores na base defendersNumber
+        #Alem desses defensores, caso a quantidade restante seja maior que a quantidade minima de atacantes (attackersNumber) mandamos eles para o ataque
+        cnt = 0 
+        attack = True if marines.amount - defendersNumber > attackersNumber else False 
+        for marine in marines:
+            if cnt < defendersNumber:
+                marine.attack(targetDefender)
+            elif attack:                
+                marine.attack(targetEnemy)
+            cnt+=1
 
 
         if iteration % 100 == 0:
@@ -98,7 +107,7 @@ class unidosDaEc(BotAI):
 def main():
     run_game(
         maps.get("AcropolisLE"),
-        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.Easy)],
+        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.MediumHard)],
         realtime=False,
     )
 
