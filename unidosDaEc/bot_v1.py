@@ -37,7 +37,7 @@ class unidosDaEc(BotAI):
             #Caso o supply esteja acabando e a gente tenha bases de controle
             #E a gente pode comprar um novo depósito e não tem nenhum depósito sendo construído
             supplyRatio > 0.8 and self.townhalls
-            and self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.already_pending(UnitTypeId.SUPPLYDEPOT) < 1
+            and self.can_afford(UnitTypeId.SUPPLYDEPOT) and self.already_pending(UnitTypeId.SUPPLYDEPOT) < 2 #Hiago: Modificado pra até 2 depósitos sendo criados
         ):
             workers: Units = self.workers.gathering
             # If workers were found
@@ -69,6 +69,23 @@ class unidosDaEc(BotAI):
                 )
                 if location:
                     worker.build(UnitTypeId.BARRACKS, location)
+                    
+        if self.gas_buildings.amount < 2 and self.can_afford(UnitTypeId.REFINERY):
+            # All the vespene geysirs nearby, including ones with a refinery on top of it
+            vgs = self.vespene_geyser.closer_than(10, self.townhalls(UnitTypeId.COMMANDCENTER).first)
+            for vg in vgs:
+                if self.gas_buildings.filter(lambda unit: unit.distance_to(vg) < 1):
+                    continue
+                # Select a worker closest to the vespene geysir
+                worker: Unit = self.select_build_worker(vg)
+                # Worker can be none in cases where all workers are dead
+                # or 'select_build_worker' function only selects from workers which carry no minerals
+                if worker is None:
+                    continue
+                # Issue the build command to the worker, important: vg has to be a Unit, not a position
+                worker.build_gas(vg)
+                # Only issue one build geysir command per frame
+                break
     
         if (
             self.can_afford(UnitTypeId.SCV) and self.supply_left > 0 and #Caso a gente possa criar SCVs
@@ -76,11 +93,24 @@ class unidosDaEc(BotAI):
              self.townhalls(UnitTypeId.ORBITALCOMMAND).idle)
         ):
             for th in self.townhalls.idle:
-                th.train(UnitTypeId.SCV) #Pegue a base ociosa e crie um trabalhador
-
+                if(th.surplus_harvesters < 2):
+                    th.train(UnitTypeId.SCV) #Pegue a base ociosa e crie um trabalhador
+        
+        # Se temos barracks
+        if self.structures(UnitTypeId.BARRACKS).ready.exists:
+            # Esses barracks estão construidos
+            for lab in self.structures(UnitTypeId.BARRACKS).ready:
+                # Me veja quais habilidades ele tem disponível
+                abilities = await self.get_available_abilities(lab)
+                # Se eu puder fazer um reator e tiver recursos
+                if AbilityId.BUILD_REACTOR_BARRACKS in abilities and \
+                self.can_afford(AbilityId.BUILD_REACTOR_BARRACKS):
+                    # Faça um reator
+                    self.do(lab(AbilityId.BUILD_REACTOR_BARRACKS))
+            
         #treinando marines
-        for rax in self.structures(UnitTypeId.BARRACKS).ready.idle:
-            if self.can_afford(UnitTypeId.MARINE):
+        for rax in self.structures(UnitTypeId.BARRACKS).ready:
+            if self.can_afford(UnitTypeId.MARINE) and len(rax.orders) < 2: # 2 ao mesmo tempo, por conta dos reatores
                 rax.train(UnitTypeId.MARINE)
         
         marines: Units = self.units(UnitTypeId.MARINE).idle
