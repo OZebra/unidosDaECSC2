@@ -65,7 +65,7 @@ class unidosDaEc(BotAI):
                 worker: Unit = workers.furthest_to(workers.center)
                 # I chose placement_step 4 here so there will be gaps between barracks hopefully
                 location: Point2 = await self.find_placement(
-                    UnitTypeId.BARRACKS, self.townhalls.random.position, placement_step=4
+                    UnitTypeId.BARRACKS, self.townhalls.random.position, placement_step=6
                 )
                 if location:
                     worker.build(UnitTypeId.BARRACKS, location)
@@ -107,6 +107,41 @@ class unidosDaEc(BotAI):
                 self.can_afford(AbilityId.BUILD_REACTOR_BARRACKS):
                     # Faça um reator
                     self.do(lab(AbilityId.BUILD_REACTOR_BARRACKS))
+                    
+        if len(self.structures(UnitTypeId.BUNKER).ready) < 2:
+            if self.can_afford(UnitTypeId.BUNKER):
+                workers: Units = self.workers.gathering
+                if (
+                    workers and self.townhalls
+                ):
+                    worker: Unit = workers.furthest_to(workers.center)
+
+                    bunker_placement_positions: Set[Point2] = self.main_base_ramp.corner_depots
+                    
+                    if len(bunker_placement_positions) > 0:                    
+                        bunkers: Units = self.structures.of_type({UnitTypeId.BUNKER})
+                        if bunkers:
+                            bunker_placement_positions: Set[Point2] = {
+                                d
+                                for d in bunker_placement_positions if bunkers.closest_distance_to(d) > 1
+                            }
+                        if len(bunker_placement_positions) > 0:
+                            target_bunker_location: Point2 = bunker_placement_positions.pop()
+                            workers: Units = self.workers.gathering
+                            if workers:  # if workers were found
+                                worker: Unit = workers.random
+                                self.do(worker.build(UnitTypeId.BUNKER, target_bunker_location))
+        else:
+            for bunker in self.structures(UnitTypeId.BUNKER):
+                if bunker.cargo_left > 0:
+                    marines: Units = self.units(UnitTypeId.MARINE).idle
+                    cnt = 0
+                    
+                    for marine in marines:
+                        if cnt < bunker.cargo_left:
+                            marine.move(bunker.position) # TODO: Aqui, em vez de mover pra posição, ele deveria entrar no bunker
+            
+                
             
         #treinando marines
         for rax in self.structures(UnitTypeId.BARRACKS).ready:
@@ -137,7 +172,7 @@ class unidosDaEc(BotAI):
 def main():
     run_game(
         maps.get("AcropolisLE"),
-        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.MediumHard)],
+        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.Hard)],
         realtime=False,
     )
 
