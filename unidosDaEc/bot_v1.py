@@ -142,8 +142,17 @@ class unidosDaEc(BotAI):
         #                         worker: Unit = workers.random
         #                         self.do(worker.build(UnitTypeId.BUNKER, target_bunker_location))
                             
-                
-            
+        #treinando reapers
+        for rax in self.structures(UnitTypeId.BARRACKS).ready:
+            if self.can_afford(UnitTypeId.REAPER) and len(rax.orders) < 2:
+                rax.train(UnitTypeId.REAPER)
+
+        reapers: Units = self.units(UnitTypeId.REAPER).idle
+        
+        for reaper in reapers:
+            if reapers.amount > 10:
+                reaper.attack(targetEnemy)        
+        
         #treinando marines
         for rax in self.structures(UnitTypeId.BARRACKS).ready:
             if rax.has_techlab:
