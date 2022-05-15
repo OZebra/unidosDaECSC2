@@ -140,7 +140,15 @@ class unidosDaEc(BotAI):
                     for marine in marines:
                         if cnt < bunker.cargo_left:
                             marine.move(bunker.position) # TODO: Aqui, em vez de mover pra posição, ele deveria entrar no bunker
-            
+        
+        #treinando reapers
+        for rax in self.structures(UnitTypeId.BARRACKS).ready:
+            if self.can_afford(UnitTypeId.REAPER):
+                rax.train(UnitTypeId.REAPER)
+
+        reapers: Units = self.units(UnitTypeId.REAPER).idle
+        for reaper in reapers:
+            reaper.attack(targetEnemy)
                 
             
         #treinando marines
