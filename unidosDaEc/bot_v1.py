@@ -143,12 +143,14 @@ class unidosDaEc(BotAI):
         
         #treinando reapers
         for rax in self.structures(UnitTypeId.BARRACKS).ready:
-            if self.can_afford(UnitTypeId.REAPER):
+            if self.can_afford(UnitTypeId.REAPER) and len(rax.orders) < 2:
                 rax.train(UnitTypeId.REAPER)
 
         reapers: Units = self.units(UnitTypeId.REAPER).idle
+        
         for reaper in reapers:
-            reaper.attack(targetEnemy)
+            if reapers.amount > 10:
+                reaper.attack(targetEnemy)
                 
             
         #treinando marines
@@ -186,7 +188,7 @@ class unidosDaEc(BotAI):
 def main():
     run_game(
         maps.get("AcropolisLE"),
-        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.Harder)],
+        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.Hard)],
         realtime=False,
     )
 
