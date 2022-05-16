@@ -24,7 +24,7 @@ class unidosDaEc(BotAI):
     
     async def on_step(self, iteration):
         defendersNumber = 10
-        attackersNumber = 20
+        attackersNumber = 50
         targetEnemy: Point2 = self.enemy_structures.random_or(self.enemy_start_locations[0]).position
         targetDefender: Point2 = self.structures.furthest_to(self.start_location) # self.start_location.position
         if iteration % 20 == 0:
@@ -198,7 +198,7 @@ class unidosDaEc(BotAI):
 def main():
     run_game(
         maps.get("AcropolisLE"),
-        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Zerg, Difficulty.Harder)],
+        [Bot(Race.Terran, unidosDaEc()), Computer(Race.Protoss, Difficulty.Harder)],
         realtime=False,
     )
 
